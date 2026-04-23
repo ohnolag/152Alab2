@@ -2,31 +2,34 @@
 
 module leadzero_tb;
     reg  [11:0] postabs_D;
-    wire [3:0] ir_E;
-    wire [4:0] ir_F;
+    wire [2:0] ir_E;
+    wire [3:0] ir_F;
+    wire       round_bit;
 
     integer errors;
 
     leadzero dut (
         .postabs_D(postabs_D),
         .ir_E(ir_E),
-        .ir_F(ir_F)
+        .ir_F(ir_F),
+        .round_bit(round_bit)
     );
 
     task check_case;
         input [11:0] in_val;
-        input [3:0]  expected_E;
-        input [4:0]  expected_F;
+        input [2:0]  expected_E;
+        input [3:0]  expected_F;
+        input        expected_round_bit;
         begin
             postabs_D = in_val;
             #1;
 
             $display(
-                "postabs_D=%b | expected E=%b F=%b | got E=%b F=%b",
-                in_val, expected_E, expected_F, ir_E, ir_F
+                "postabs_D=%b | expected E=%b F=%b R=%b | got E=%b F=%b R=%b",
+                in_val, expected_E, expected_F, expected_round_bit, ir_E, ir_F, round_bit
             );
 
-            if (ir_E !== expected_E || ir_F !== expected_F) begin
+            if (ir_E !== expected_E || ir_F !== expected_F || round_bit !== expected_round_bit) begin
                 errors = errors + 1;
                 $display(
                     "RESULT: FAIL"
@@ -44,20 +47,17 @@ module leadzero_tb;
     initial begin
         errors = 0;
 
-        $display("Starting leadzero testbench...");
-        $display("--------------------------------");
-
-        check_case(12'b000000000000, 4'b0000, 5'b00000);
-        check_case(12'b000000000001, 4'b0000, 5'b00010);
-        check_case(12'b000000001011, 4'b0000, 5'b10110);
-        check_case(12'b000000010110, 4'b0001, 5'b10110);
-        check_case(12'b000110100110, 4'b0101, 5'b11010);
-        check_case(12'b100000000000, 4'b1000, 5'b10000);
+        check_case(12'b000000000000, 3'b000, 4'b0000, 1'b0);
+        check_case(12'b000000000001, 3'b000, 4'b0001, 1'b0);
+        check_case(12'b000000001011, 3'b000, 4'b1011, 1'b0);
+        check_case(12'b000000010110, 3'b001, 4'b1011, 1'b0);
+        check_case(12'b000110100110, 3'b101, 4'b1101, 1'b0);
+        check_case(12'b011111111111, 3'b111, 4'b1111, 1'b1);
 
         if (errors == 0) begin
-            $display("PASS: leadzero testbench completed with no mismatches.");
+            $display("PASS");
         end else begin
-            $display("FAIL: leadzero testbench found %0d mismatches.", errors);
+            $display("FAIL: %0d errors", errors);
         end
 
         $finish;
