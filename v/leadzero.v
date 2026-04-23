@@ -29,8 +29,7 @@ module leadzero (
             end
 
             // The absolute value of -2048 is 2048, which needs an effective
-            // shift of 8 and cannot be encoded by the 3-bit exponent. Emit the
-            // largest intermediate value so the rounding stage saturates it.
+            // shift of 8 and cannot be encoded by the 3-bit exponent.
             if (msb_idx == 4'd11) begin
                 ir_E = 3'b111;
                 ir_F = 4'b1111;
